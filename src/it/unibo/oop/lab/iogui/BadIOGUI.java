@@ -6,9 +6,14 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Random;
 
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -36,9 +41,14 @@ public class BadIOGUI {
      */
     public BadIOGUI() {
         final JPanel canvas = new JPanel();
-        canvas.setLayout(new BorderLayout());
+        canvas.setLayout(new BoxLayout(canvas, BoxLayout.X_AXIS));
+
         final JButton write = new JButton("Write on file");
         canvas.add(write, BorderLayout.CENTER);
+
+        final JButton read = new JButton("Read from file");
+        canvas.add(read, BorderLayout.CENTER);
+
         frame.setContentPane(canvas);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         /*
@@ -47,17 +57,25 @@ public class BadIOGUI {
         write.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
-                /*
-                 * This would be VERY BAD in a real application.
-                 * 
-                 * This makes the Event Dispatch Thread (EDT) work on an I/O
-                 * operation. I/O operations may take a long time, during which
-                 * your UI becomes completely unresponsive.
-                 */
                 try (PrintStream ps = new PrintStream(PATH)) {
                     ps.print(rng.nextInt());
                 } catch (FileNotFoundException e1) {
                     JOptionPane.showMessageDialog(frame, e1, "Error", JOptionPane.ERROR_MESSAGE);
+                    e1.printStackTrace();
+                }
+            }
+        });
+
+        read.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                try {
+                    final String rgn = Files.readString(Paths.get(PATH), StandardCharsets.UTF_8);
+                    System.out.println(rgn);
+                } catch (FileNotFoundException e1) {
+                    JOptionPane.showMessageDialog(frame, e1, "Error", JOptionPane.ERROR_MESSAGE);
+                    e1.printStackTrace();
+                } catch (IOException e1) {
                     e1.printStackTrace();
                 }
             }
